@@ -26,3 +26,11 @@ This approach is convenient as it allows for integration of the agent in other a
 As a simple testing harness, we have provided a basic Streamlit app with a chat interface that handles creating new threads, executing runs, and displaying streamed agent responses.
 
 ```python -m streamlit run chat_app.py```
+
+### Notes:
+
+This sample was designed to retrieve data stored in an Azure AI Search index and an Azure SQL database. The schema for this index/database is contained within the [./src/schema](./src/schema/) directory. 
+
+For testing purposes we utilized a dataset retrieved from Kaggle containing [Goodreads book reviews](https://www.kaggle.com/datasets/bahramjannesarr/goodreads-book-datasets-10m).
+
+However, the intention here is that this repo can be adapted to point at **alternative** datasets stored in Azure AI Search and Azure SQL.
