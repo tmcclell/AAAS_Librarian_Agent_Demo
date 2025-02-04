@@ -19,7 +19,7 @@ To invoke this agent at an API endpoint we have provided a FastAPI wrapper which
 
 This approach is convenient as it allows for integration of the agent in other applications and workflows.
 
-```python -m uvicorn multi_agent:app```
+```python -m uvicorn multi_agent:app --port 8005```
 
 [Chat Application (Streamlit)](./src/app/chat_app.py)
 
