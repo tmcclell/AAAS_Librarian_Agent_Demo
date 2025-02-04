@@ -1,6 +1,6 @@
-# Azure AI Agent Service Demo
+# Azure AI Agent Service Demo - Librarian Agent
 
-## Librarian Agent
+Sample repository showcasing how to build an Agent (using the Azure AI Agent Service SDK), deploy it to a standalone API endpoint (using FastAPI) and interact with your agent in a simple chat interface (Streamlit).
 
 ---
 
