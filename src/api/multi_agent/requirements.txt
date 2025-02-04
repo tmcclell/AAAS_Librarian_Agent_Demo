@@ -1,0 +1,9 @@
+fastapi==0.110.1
+pydantic==2.7.1
+python-dotenv==1.0.0
+azure-ai-projects==1.0.0b4
+azure-identity==1.17.1
+uvicorn==0.29.0
+gunicorn
+pandas==2.2.3
+pyodbc==4.0.39

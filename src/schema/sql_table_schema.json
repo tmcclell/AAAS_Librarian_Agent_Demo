@@ -1,0 +1,52 @@
+{  
+    "dbo.goodreads_book_data": {  
+        "Name": {  
+            "type": "nvarchar",  
+            "description": "The title of the book."  
+        },  
+        "ISBN": {  
+            "type": "nvarchar",  
+            "description": "The International Standard Book Number assigned to the book."  
+        },  
+        "RatingDist1": {  
+            "type": "bigint",  
+            "description": "The number of 1-star reviews the book has received."  
+        },  
+        "RatingDist2": {  
+            "type": "bigint",  
+            "description": "The number of 2-star reviews the book has received."  
+        },  
+        "RatingDist3": {  
+            "type": "bigint",  
+            "description": "The number of 3-star reviews the book has received."  
+        },  
+        "RatingDist4": {  
+            "type": "bigint",  
+            "description": "The number of 4-star reviews the book has received."  
+        },  
+        "RatingDist5": {  
+            "type": "bigint",  
+            "description": "The number of 5-star reviews the book has received."  
+        },  
+        "RatingDistTotal": {  
+            "type": "bigint",  
+            "description": "The total number of reviews the book has received across all star ratings."  
+        },  
+        "CountsOfReview": {  
+            "type": "bigint",  
+            "description": "The total count of reviews the book has received."  
+        },  
+        "Rating": {  
+            "type": "float",  
+            "description": "The average rating of the book based on user reviews, represented as a floating-point number."  
+        },  
+        "PagesNumber": {  
+            "type": "bigint",  
+            "description": "The total number of pages in the book."  
+        },  
+        "id": {  
+            "type": "bigint",  
+            "description": "A unique identifier for the book in the database."  
+        }  
+    }  
+}  

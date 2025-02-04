@@ -1,0 +1,12 @@
+{"id": "A unique identifier for the book in the index.", 
+"sourcefileref": "A reference to the original file source, which can be null if not applicable.", 
+"Name": "The title of the book.", 
+"PublishMonth": "The month the book was published.", 
+"PublishDay": "The day of the month the book was published.", 
+"Publisher": "The name of the entity that published the book.", 
+"PublishYear": "The year the book was published.", 
+"Language": "The language in which the book is written, represented in a string format.", 
+"Authors": "The name(s) of the author(s) of the book.", 
+"ISBN": "The International Standard Book Number assigned to the book.", 
+"Description": "A brief summary or description of the book's content.", 
+"embeddings": "A list of numerical values representing the book's content in a vector space, often used for similarity searches or machine learning applications." } 
