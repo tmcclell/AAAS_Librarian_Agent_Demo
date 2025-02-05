@@ -22,7 +22,7 @@ RUN apt-get update -y && \
 WORKDIR /code
 
 # 6. Copy your application code
-COPY api/sql_agent/ . 
+COPY api/multi_agent/ . 
 COPY utility_functions . 
 COPY . .
 
@@ -34,4 +34,4 @@ RUN pip install --upgrade -r requirements.txt
 EXPOSE 3100
 
 # 9. Start the app
-CMD ["gunicorn", "sql_agent:app"]
+CMD ["gunicorn", "multi_agent:app"]
