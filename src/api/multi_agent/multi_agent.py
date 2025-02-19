@@ -484,7 +484,7 @@ async def upload_file(request: FileUploadRequest):
         message = project_client.agents.create_message(
             thread_id=request.thread_id,
             role="user",  # Use 'user' as the role
-            content=request.file_data,  # Send the file content directly
+            content=json.dumps(payload),
         )
 
         # Use the same thread to send the payload to the model

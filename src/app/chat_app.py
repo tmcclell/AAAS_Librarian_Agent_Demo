@@ -46,6 +46,8 @@ if "srch_thread_id" not in st.session_state:
 def upload_file_to_agent(uploaded_file, thread_id):
     # Read the file content
     file_content = uploaded_file.read()
+    print(file_content)
+    
     
     # If the file is a CSV or JSON, you might want to parse it
     if uploaded_file.type == "text/csv":
@@ -97,7 +99,7 @@ for msg in st.session_state["srch_messages"]:
             st.markdown(msg["content"], unsafe_allow_html=True)
 
 # Chat Input + Streaming Response
-prompt = st.chat_input("Chat with your Sustainable AI Agent")
+prompt = st.chat_input("Calculate the SCI for the uploaded document.")
 if prompt:
     st.session_state["srch_messages"].append({"role": "user", "content": prompt})
 
