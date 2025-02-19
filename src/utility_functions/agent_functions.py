@@ -184,6 +184,6 @@ def run_query_on_table(sql_query):
 
 # Statically defined user functions for fast reference
 agent_functions: Set[Callable[..., Any]] = {
-    run_query_on_table,
+    #run_query_on_table,
     retrieve_documents_from_user_index
 }

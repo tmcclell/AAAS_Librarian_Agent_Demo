@@ -137,7 +137,7 @@ def retrieve_documents_from_user_index(search_text:str, record_count=10, filter_
     except Exception as e:
         return str(e)
 
-def run_query_on_table(sql_query):  
+#def run_query_on_table(sql_query):  
     """  
     Runs a SQL query against a the Goodreads SQL data (book ratings).  
       
@@ -182,6 +182,6 @@ def run_query_on_table(sql_query):
 
 # Statically defined user functions for fast reference
 agent_functions: Set[Callable[..., Any]] = {
-    run_query_on_table,
+    #run_query_on_table,
     retrieve_documents_from_user_index
 }

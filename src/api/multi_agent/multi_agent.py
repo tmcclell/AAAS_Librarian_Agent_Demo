@@ -84,6 +84,7 @@ def stringify_code(obj) -> str:
         return str(obj)
 
 class FileUploadRequest(BaseModel):  
+    thread_id: str  # Ensure thread_id field is included
     file_name: str  
     file_data: str  
 
@@ -361,3 +362,140 @@ async def retrieve_last_response(request: RetrieveResponseRequest):
         return return_str
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to retrieve response: {str(e)}")
+
+@app.post("/upload_file")
+async def upload_file(request: FileUploadRequest):
+    project_client = AIProjectClient.from_connection_string(
+        credential=DefaultAzureCredential(),
+        conn_str=os.environ['AZURE_AI_FOUNDRY_CONNECTION_STRING'],
+    )
+    try:
+        # Define the CustomAgentEventHandler class
+        class CustomAgentEventHandler(AgentEventHandler):
+
+            def __init__(self, functions: FunctionTool, project_client: AIProjectClient, thread_id: str) -> None:
+                super().__init__()
+                self.functions = functions
+                self.project_client = project_client
+                self.code_interpreter_active = False
+                self.thread_id = thread_id
+                self.queue = queue.Queue()
+                self.return_elements = []
+
+            def on_message_delta(self, delta: "MessageDeltaChunk") -> None:
+                self.queue.put(delta.text)
+                pass
+
+            def on_thread_message(self, message: "ThreadMessage") -> None:
+                pass
+
+            def on_thread_run(self, run: "ThreadRun") -> None:
+                if run.status == "failed":
+                    print(f"Run failed. Error: {run.last_error}")
+                    pass
+
+                if run.status == "requires_action" and isinstance(run.required_action, SubmitToolOutputsAction):
+                    tool_calls = run.required_action.submit_tool_outputs.tool_calls
+
+                    tool_outputs = []
+                    for tool_call in tool_calls:
+                        try:
+                            if tool_call.type == "function":
+                                display_text = ''
+                                arguments = json.loads(tool_call.function.arguments)
+                                if tool_call.function.name == "retrieve_documents_from_user_index":
+                                    self.queue.put('Retrieving Documents from AI Search\n<br>')
+                                    display_text = f'Searching for: <i><span style="color: limegreen;">{arguments["search_text"]}</span></i>\n\n<br>'
+                                    self.queue.put(display_text)
+                                elif tool_call.function.name == 'run_query_on_table':
+                                    display_text = 'Running query Against SQL\n<br>'
+                                    query = arguments['sql_query']
+                                    self.queue.put(f"Running SQL Query: \n```sql\n{query}\n```\n")
+                              
+                                output = functions.execute(tool_call)
+                                tool_outputs.append(
+                                    ToolOutput(
+                                        tool_call_id=tool_call.id,
+                                        output=output,
+                                    )
+                                )
+                        except Exception as e:
+                            print(f"Error executing tool_call {tool_call.id}: {e}")
+
+                    if tool_outputs:
+                        with self.project_client.agents.submit_tool_outputs_to_stream(
+                            thread_id=run.thread_id, run_id=run.id, tool_outputs=tool_outputs, event_handler=self    
+                        ) as stream:
+                            stream.until_done()
+                else:
+                    pass
+
+            def on_run_step(self, step: "RunStep") -> None:
+                print(f"RunStep type: {step.type}, Status: {step.status}")
+                if step.status == RunStepStatus.COMPLETED:
+                    if 'tool_calls' in step.step_details:
+                        for tc in step.step_details.tool_calls:
+                            if tc.type == 'code_interpreter':
+                                self.code_interpreter_active = False
+                                self.queue.put('</pre></code>')
+
+                                for output in tc.code_interpreter.outputs:
+                                    if output.type == 'image':
+                                        file_id = output.image.file_id
+                                        data = project_client.agents.get_file_content(file_id)
+                                        chunks = []
+                                        for chunk in data:
+                                            if isinstance(chunk, (bytes, bytearray)):
+                                                chunks.append(chunk)
+                                        
+                                        combined_bytes = b"".join(chunks)
+                                        encoded_image = base64.b64encode(combined_bytes).decode('utf-8') 
+                                        data_url = f'<img width="750px" src="data:image/png;base64,{encoded_image}"/><br/>'
+                                        self.queue.put(data_url)
+                                        self.queue.put('<br/><br/>\n\n')
+
+            def on_run_step_delta(self, delta):
+                tool_calls = delta.delta.step_details.tool_calls
+                for tc in tool_calls:
+                    if tc.type == 'code_interpreter':
+                        if not self.code_interpreter_active:
+                            self.code_interpreter_active = True
+                            self.queue.put('<code><pre>'.encode('unicode_escape'))
+                        code = tc.code_interpreter.input
+                        if code is not None:
+                            code_str = stringify_code(code)
+                            self.queue.put(code_str)
+
+            def on_error(self, data: str) -> None:
+                print(f"An error occurred. Data: {data}")
+
+            def on_done(self) -> None:
+                print("Stream completed.")
+
+            def on_unhandled_event(self, event_type: str, event_data: Any) -> None:
+                print(f"Unhandled Event Type: {event_type}, Data: {event_data}")
+
+        # Send the JSON payload to the agent using the same thread
+        payload = {
+            "thread_id": request.thread_id,
+            "file_name": request.file_name,
+            "file_data": request.file_data,
+        }
+        message = project_client.agents.create_message(
+            thread_id=request.thread_id,
+            role="user",  # Use 'user' as the role
+            content=request.file_data,  # Send the file content directly
+        )
+
+        # Use the same thread to send the payload to the model
+        handler = CustomAgentEventHandler(functions, project_client, request.thread_id)
+        with project_client.agents.create_stream(
+            thread_id=request.thread_id, assistant_id=agent.id, event_handler=handler
+        ) as stream:
+            stream.until_done()
+
+        return {"message": "File content sent successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to send file content: {str(e)}")
+
+
