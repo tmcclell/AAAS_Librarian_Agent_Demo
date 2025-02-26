@@ -45,9 +45,7 @@ if "srch_thread_id" not in st.session_state:
 
 def upload_file_to_agent(uploaded_file, thread_id):
     # Read the file content
-    file_content = uploaded_file.read()
-    print(file_content)
-    
+    file_content = uploaded_file.read()      
     
     # If the file is a CSV or JSON, you might want to parse it
     if uploaded_file.type == "text/csv":
@@ -75,9 +73,15 @@ def upload_file_to_agent(uploaded_file, thread_id):
     try:
         response = requests.post(
             f"{AGENT_ENDPOINT}/upload_file",
-            json=payload
+            json=payload,
+            stream=True
         )
         if response.status_code == 200:
+            partial_response = ""
+            for chunk in response.iter_content(chunk_size=4096, decode_unicode=True):
+                if chunk:
+                    partial_response += chunk
+                    st.session_state["srch_messages"].append({"role": "assistant", "content": partial_response})
             st.success("File uploaded successfully!")
         else:
             st.error(f"Error from API: {response.status_code} - {response.text}")
